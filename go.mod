@@ -1,4 +1,4 @@
-module github.com/hyird/GuardDNS
+module github.com/hyird/VelaDNS
 
 go 1.24.9
 

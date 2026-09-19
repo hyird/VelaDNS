@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyird/GuardDNS/internal/statewire"
+	"github.com/hyird/VelaDNS/internal/statewire"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -171,9 +171,9 @@ func TestCollectExportsDoHUpstreamMetrics(t *testing.T) {
 		found[family.GetName()] = true
 	}
 	for _, name := range []string{
-		"guarddns_doh_upstream_requests_total",
-		"guarddns_doh_upstream_request_duration_seconds_total",
-		"guarddns_doh_upstream_backoff_seconds",
+		"veladns_doh_upstream_requests_total",
+		"veladns_doh_upstream_request_duration_seconds_total",
+		"veladns_doh_upstream_backoff_seconds",
 	} {
 		if !found[name] {
 			t.Errorf("metric %s was not exported", name)

@@ -10,11 +10,11 @@ on:
     - cron: '23 19 * * *'
 
 concurrency:
-  group: guarddns-${{ github.workflow }}-${{ github.ref }}
+  group: veladns-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/guarddns
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/veladns
 
 jobs:
   test:
@@ -45,20 +45,20 @@ jobs:
         with:
           context: .
           load: true
-          tags: guarddns:test
+          tags: veladns:test
           platforms: linux/amd64
           cache-from: type=gha,scope=linux-amd64
           cache-to: type=gha,mode=max,scope=linux-amd64
 
       - name: Verify optimized image shape
         run: |
-          layers="$(docker image inspect guarddns:test --format '{{len .RootFS.Layers}}')"
-          size="$(docker image inspect guarddns:test --format '{{.Size}}')"
+          layers="$(docker image inspect veladns:test --format '{{len .RootFS.Layers}}')"
+          size="$(docker image inspect veladns:test --format '{{.Size}}')"
           test "$layers" -eq 1
           printf 'filesystem_layers=%s image_size_bytes=%s\n' "$layers" "$size"
 
       - name: Run integration tests
-        run: sh tests/integration.sh guarddns:test
+        run: sh tests/integration.sh veladns:test
 
   architecture-smoke:
     name: smoke (${{ matrix.platform }})
@@ -89,7 +89,7 @@ jobs:
         with:
           context: .
           load: true
-          tags: guarddns:${{ matrix.tag }}
+          tags: veladns:${{ matrix.tag }}
           platforms: ${{ matrix.platform }}
           cache-from: type=gha,scope=${{ matrix.tag }}
           cache-to: type=gha,mode=max,scope=${{ matrix.tag }}
@@ -99,11 +99,11 @@ jobs:
           docker run --rm \
             --platform "${{ matrix.platform }}" \
             --entrypoint /usr/local/bin/mosdns \
-            "guarddns:${{ matrix.tag }}" version | grep '^v5\.3\.4-guarddns$'
+            "veladns:${{ matrix.tag }}" version | grep '^v5\.3\.4-veladns$'
           docker run --rm \
             --platform "${{ matrix.platform }}" \
-            --entrypoint /usr/local/bin/guarddns \
-            "guarddns:${{ matrix.tag }}" version | grep '^v5\.3\.4-guarddns$'
+            --entrypoint /usr/local/bin/veladns \
+            "veladns:${{ matrix.tag }}" version | grep '^v5\.3\.4-veladns$'
 
   publish:
     needs:
@@ -142,7 +142,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,format=short
           labels: |
-            org.opencontainers.image.title=GuardDNS
+            org.opencontainers.image.title=VelaDNS
             org.opencontainers.image.description=Fail-closed anti-pollution split DNS for RouterOS and Mihomo
 
       - name: Build and publish

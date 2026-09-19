@@ -25,16 +25,16 @@ func TestBootstrapLogLevelMatchesRuntimeDefault(t *testing.T) {
 	}
 }
 
-func TestGuardDNSPluginsInitializeTogether(t *testing.T) {
+func TestVelaDNSPluginsInitializeTogether(t *testing.T) {
 	entry := sequence.Args{
-		{Exec: "guarddns_metrics_collector main"},
-		{Exec: "guarddns_decision first"},
-		{Exec: "guarddns_decision second"},
+		{Exec: "veladns_metrics_collector main"},
+		{Exec: "veladns_decision first"},
+		{Exec: "veladns_decision second"},
 		{Exec: "reject 0"},
 	}
 	secureEntry := sequence.Args{
-		{Exec: "guarddns_metrics_collector secure"},
-		{Exec: "guarddns_decision secure"},
+		{Exec: "veladns_metrics_collector secure"},
+		{Exec: "veladns_decision secure"},
 		{Exec: "reject 0"},
 	}
 	cfg := &coremain.Config{Plugins: []coremain.PluginConfig{
@@ -42,7 +42,7 @@ func TestGuardDNSPluginsInitializeTogether(t *testing.T) {
 		{Tag: "secure_entry", Type: "sequence", Args: &secureEntry},
 		{
 			Tag:  "main_tcp",
-			Type: "guarddns_tcp_server",
+			Type: "veladns_tcp_server",
 			Args: &tcp_server.Args{
 				Entry:  "entry",
 				Listen: "127.0.0.1:0",
@@ -50,7 +50,7 @@ func TestGuardDNSPluginsInitializeTogether(t *testing.T) {
 		},
 		{
 			Tag:  "secure_tcp",
-			Type: "guarddns_tcp_server",
+			Type: "veladns_tcp_server",
 			Args: &tcp_server.Args{
 				Entry:  "secure_entry",
 				Listen: "127.0.0.1:0",

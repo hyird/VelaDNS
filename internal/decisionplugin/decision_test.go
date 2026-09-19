@@ -24,7 +24,7 @@ func TestDecisionCountersShareOneMetricVector(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(families) != 1 || families[0].GetName() != "mosdns_guarddns_decisions_total" {
+	if len(families) != 1 || families[0].GetName() != "mosdns_veladns_decisions_total" {
 		t.Fatalf("metric families = %#v", families)
 	}
 	if len(families[0].Metric) != 2 {

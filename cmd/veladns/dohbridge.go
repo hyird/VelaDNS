@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/hyird/GuardDNS/internal/statewire"
+	"github.com/hyird/VelaDNS/internal/statewire"
 	"github.com/miekg/dns"
 )
 

@@ -15,16 +15,16 @@ import (
 )
 
 const (
-	runtimeDir                    = "/run/guarddns"
-	unboundRuntimeDir             = "/run/guarddns/unbound"
-	unboundRecursiveRuntimeDir    = "/run/guarddns/unbound-recursive"
-	configDir                     = "/etc/guarddns"
+	runtimeDir                    = "/run/veladns"
+	unboundRuntimeDir             = "/run/veladns/unbound"
+	unboundRecursiveRuntimeDir    = "/run/veladns/unbound-recursive"
+	configDir                     = "/etc/veladns"
 	dataDir                       = "/data"
-	supervisorSocket              = "/run/guarddns/supervisor.sock"
-	mosdnsRuntimeConfig           = "/run/guarddns/mosdns.yaml"
-	foreignRuntimeConfig          = "/run/guarddns/foreign.yaml"
-	unboundRuntimeConfig          = "/run/guarddns/unbound.conf"
-	unboundRecursiveRuntimeConfig = "/run/guarddns/unbound-recursive.conf"
+	supervisorSocket              = "/run/veladns/supervisor.sock"
+	mosdnsRuntimeConfig           = "/run/veladns/mosdns.yaml"
+	foreignRuntimeConfig          = "/run/veladns/foreign.yaml"
+	unboundRuntimeConfig          = "/run/veladns/unbound.conf"
+	unboundRecursiveRuntimeConfig = "/run/veladns/unbound-recursive.conf"
 )
 
 var safeHost = regexp.MustCompile(`^[A-Za-z0-9._-]+$`)

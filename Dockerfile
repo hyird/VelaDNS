@@ -8,7 +8,7 @@ FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS go-builder
 ARG TARGETOS
 ARG TARGETARCH
 ARG TARGETVARIANT
-ARG GUARDNS_VERSION=v5.3.4-guarddns
+ARG VELADNS_VERSION=v5.3.4-veladns
 
 WORKDIR /src
 RUN apk add --no-cache upx
@@ -22,13 +22,13 @@ RUN set -eux; \
     target_goarm=""; \
     if [ "$TARGETARCH" = arm ]; then target_goarm="${TARGETVARIANT#v}"; fi; \
     CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" GOARM="$target_goarm" \
-      go build -trimpath -ldflags="-s -w -X main.version=${GUARDNS_VERSION}" \
+      go build -trimpath -ldflags="-s -w -X main.version=${VELADNS_VERSION}" \
       -o /out/mosdns ./cmd/mosdns; \
     CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" GOARM="$target_goarm" \
-      go build -trimpath -ldflags="-s -w -X main.version=${GUARDNS_VERSION}" \
-      -o /out/guarddns ./cmd/guarddns
-RUN upx --best --lzma /out/mosdns /out/guarddns \
-    && upx -t /out/mosdns /out/guarddns
+      go build -trimpath -ldflags="-s -w -X main.version=${VELADNS_VERSION}" \
+      -o /out/veladns ./cmd/veladns
+RUN upx --best --lzma /out/mosdns /out/veladns \
+    && upx -t /out/mosdns /out/veladns
 
 FROM alpine:${ALPINE_VERSION} AS rules-downloader
 
@@ -81,10 +81,10 @@ RUN set -eux; \
 FROM scratch AS runtime-assets
 
 COPY --from=go-builder --chmod=0755 /out/mosdns /usr/local/bin/mosdns
-COPY --from=go-builder --chmod=0755 /out/guarddns /usr/local/bin/guarddns
-COPY --from=rules-downloader /out/ /usr/share/guarddns/rules/
-COPY config/ /etc/guarddns/
-COPY --chmod=0755 scripts/healthcheck.sh /usr/local/bin/guarddns-healthcheck
+COPY --from=go-builder --chmod=0755 /out/veladns /usr/local/bin/veladns
+COPY --from=rules-downloader /out/ /usr/share/veladns/rules/
+COPY config/ /etc/veladns/
+COPY --chmod=0755 scripts/healthcheck.sh /usr/local/bin/veladns-healthcheck
 
 FROM alpine:${ALPINE_VERSION} AS runtime-root
 
@@ -101,33 +101,33 @@ RUN if [ -n "$ALPINE_MIRROR" ]; then \
       "unbound=1.25.1-r0" \
     && ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && printf '%s\n' 'Asia/Shanghai' > /etc/timezone \
-    && mkdir -p /etc/guarddns /usr/share/guarddns/rules /run/guarddns/unbound /data
+    && mkdir -p /etc/veladns /usr/share/veladns/rules /run/veladns/unbound /data
 
 COPY --from=runtime-assets / /
 
 RUN unbound -V | grep -F "Version ${UNBOUND_VERSION}" \
-    && cp /usr/share/dnssec-root/trusted-key.key /run/guarddns/unbound/root.key \
-    && chown -R unbound:unbound /run/guarddns/unbound \
-    && mkdir -p /run/guarddns/unbound-recursive \
-    && chown -R unbound:unbound /run/guarddns/unbound-recursive \
-    && sed 's/__UNBOUND_VERBOSITY__/1/' /etc/guarddns/unbound.conf.tmpl > /tmp/unbound.conf \
+    && cp /usr/share/dnssec-root/trusted-key.key /run/veladns/unbound/root.key \
+    && chown -R unbound:unbound /run/veladns/unbound \
+    && mkdir -p /run/veladns/unbound-recursive \
+    && chown -R unbound:unbound /run/veladns/unbound-recursive \
+    && sed 's/__UNBOUND_VERBOSITY__/1/' /etc/veladns/unbound.conf.tmpl > /tmp/unbound.conf \
     && unbound-checkconf /tmp/unbound.conf >/dev/null \
-    && sed 's/__UNBOUND_VERBOSITY__/1/' /etc/guarddns/unbound-recursive.conf.tmpl \
+    && sed 's/__UNBOUND_VERBOSITY__/1/' /etc/veladns/unbound-recursive.conf.tmpl \
          > /tmp/unbound-recursive.conf \
     && unbound-checkconf /tmp/unbound-recursive.conf >/dev/null \
-    && rm -f /tmp/unbound.conf /tmp/unbound-recursive.conf /run/guarddns/unbound/root.key
+    && rm -f /tmp/unbound.conf /tmp/unbound-recursive.conf /run/veladns/unbound/root.key
 
 FROM scratch
 
 ARG MOSDNS_VERSION=5.3.4
 
-LABEL org.opencontainers.image.title="GuardDNS" \
+LABEL org.opencontainers.image.title="VelaDNS" \
       org.opencontainers.image.description="Fail-closed anti-pollution split DNS for RouterOS and Mihomo" \
-      org.opencontainers.image.source="https://github.com/hyird/GuardDNS" \
+      org.opencontainers.image.source="https://github.com/hyird/VelaDNS" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.version="${MOSDNS_VERSION}" \
-      io.guarddns.image.filesystem-layers="1" \
-      io.guarddns.image.upx="--best --lzma"
+      io.veladns.image.filesystem-layers="1" \
+      io.veladns.image.upx="--best --lzma"
 
 # Squash the prepared Alpine root into one final filesystem layer. Build-only
 # package, validation, and asset layers stay out of the published manifest.
@@ -140,6 +140,6 @@ VOLUME ["/data"]
 EXPOSE 53/udp 53/tcp 5304/udp 5304/tcp 5308/tcp
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD ["/usr/local/bin/guarddns-healthcheck"]
+  CMD ["/usr/local/bin/veladns-healthcheck"]
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/guarddns"]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/veladns"]

@@ -1,8 +1,8 @@
-# GuardDNS
+# VelaDNS
 
 [English](README.md) | 简体中文
 
-GuardDNS 是一个面向 RouterOS、Mihomo 和普通 Docker 主机的故障关闭型分流
+VelaDNS 是一个面向 RouterOS、Mihomo 和普通 Docker 主机的故障关闭型分流
 DNS 容器，包含：
 
 - MosDNS 5.3.4：请求路由、缓存、指标和 DNS 监听；
@@ -43,7 +43,7 @@ Mihomo 查询真实 DNS -> :5304 -> :5306 -> :5307 -> DoH/443
 | AAAA | 返回成功但无记录的应答 |
 | 私有域名 | 返回 `NXDOMAIN` |
 
-GuardDNS 不缓存 fake-IP。DNSSEC 验证失败保持为 `SERVFAIL`，`NXDOMAIN` 和
+VelaDNS 不缓存 fake-IP。DNSSEC 验证失败保持为 `SERVFAIL`，`NXDOMAIN` 和
 NODATA 不会被转换成 fake-IP。
 
 ## 快速开始
@@ -52,27 +52,27 @@ NODATA 不会被转换成 fake-IP。
 
 ```sh
 docker run -d \
-  --name guarddns \
+  --name veladns \
   --restart unless-stopped \
   -v ./data:/data \
   -p 53:53/udp -p 53:53/tcp \
   -p 5304:5304/udp -p 5304:5304/tcp \
   -p 127.0.0.1:5308:5308/tcp \
-  ghcr.io/hyird/guarddns:latest
+  ghcr.io/hyird/veladns:latest
 ```
 
 Mihomo fake-IP 模式：
 
 ```sh
 docker run -d \
-  --name guarddns \
+  --name veladns \
   --restart unless-stopped \
   -v ./data:/data \
   -e AUTO_FORWARD=172.16.0.101 \
   -p 53:53/udp -p 53:53/tcp \
   -p 5304:5304/udp -p 5304:5304/tcp \
   -p 127.0.0.1:5308:5308/tcp \
-  ghcr.io/hyird/guarddns:latest
+  ghcr.io/hyird/veladns:latest
 ```
 
 端口 `53` 是面向客户端的分流 DNS。端口 `5304` 始终返回加密真实地址，可安全
@@ -88,7 +88,7 @@ docker run -d \
 | `LOG_LEVEL` | `warn` | `debug`、`info`、`warn` 或 `error` |
 | `AUTO_FORWARD` | `no` | `no` 或 Mihomo DNS 的 `host[:port]`，默认端口为 `53` |
 
-`AUTO_FORWARD` 支持主机名或 IPv4 端点，不支持 IPv6 字面量。GuardDNS 与该
+`AUTO_FORWARD` 支持主机名或 IPv4 端点，不支持 IPv6 字面量。VelaDNS 与该
 DNS 端点之间使用 TCP。
 
 启用 Mihomo 后：
@@ -136,10 +136,10 @@ Go 入口进程分别监督 MosDNS 和两个 Unbound 进程。子进程退出后
 
 | 接口 | 含义 |
 | --- | --- |
-| `/plugins/guarddns/livez` | supervisor 状态新鲜且 MosDNS 正在运行 |
-| `/plugins/guarddns/readyz` | 在 livez 基础上检查 DoH 网桥和解析器依赖 |
-| `/plugins/guarddns/healthz` | `readyz` 的兼容别名 |
-| `/plugins/guarddns/dependencies` | 组件和 DoH 提供商状态的 JSON 快照 |
+| `/plugins/veladns/livez` | supervisor 状态新鲜且 MosDNS 正在运行 |
+| `/plugins/veladns/readyz` | 在 livez 基础上检查 DoH 网桥和解析器依赖 |
+| `/plugins/veladns/healthz` | `readyz` 的兼容别名 |
+| `/plugins/veladns/dependencies` | 组件和 DoH 提供商状态的 JSON 快照 |
 
 验证型或递归型 Unbound 故障时状态为 `degraded`；supervisor 状态过期、MosDNS
 停止或 DoH 网桥不可用时状态为 unhealthy。容器健康检查会先调用 `readyz`，
@@ -158,18 +158,18 @@ http://127.0.0.1:5308/metrics
 | 指标族 | 作用 |
 | --- | --- |
 | `mosdns_metrics_collector_*` | main/secure 查询总数、真实错误、客户端取消、并发和延迟 |
-| `mosdns_guarddns_decisions_total` | 按请求顺序记录路由和分类决策 |
-| `mosdns_guarddns_doh_upstream_*` | 各 DoH 提供商的请求、成功、失败、耗时、退避和时间戳 |
-| `mosdns_guarddns_component_*` | 受监督进程的状态、重启次数和重启退避 |
-| `mosdns_guarddns_circuit_*` | Mihomo 熔断状态、失败、绕过次数和重试延迟 |
-| `mosdns_guarddns_client_cancel_events_total` | 从 WARN 日志中抑制的预期 TCP 取消事件 |
+| `mosdns_veladns_decisions_total` | 按请求顺序记录路由和分类决策 |
+| `mosdns_veladns_doh_upstream_*` | 各 DoH 提供商的请求、成功、失败、耗时、退避和时间戳 |
+| `mosdns_veladns_component_*` | 受监督进程的状态、重启次数和重启退避 |
+| `mosdns_veladns_circuit_*` | Mihomo 熔断状态、失败、绕过次数和重试延迟 |
+| `mosdns_veladns_client_cancel_events_total` | 从 WARN 日志中抑制的预期 TCP 取消事件 |
 
 MosDNS 还会导出 Go/进程、缓存和带标签的上游转发指标。同一 HTTP 监听器的
 `/debug/pprof` 下提供性能分析接口。禁止向不可信网络开放端口 `5308`。
 
 ## 自定义规则
 
-GuardDNS 对外只提供两个域名映射：
+VelaDNS 对外只提供两个域名映射：
 
 | 映射 | 用户维护文件 | 内置基础数据 | 结果 |
 | --- | --- | --- | --- |
@@ -195,21 +195,21 @@ regexp:^api[0-9]+\.example\.com$
 `direct.txt` 和 `proxy.txt` 由 MosDNS 进程持续监听，保存后会在约 200 毫秒
 防抖窗口后热更新，不重启容器或 DNS 监听器。空文件会清空对应规则；注释、空行
 和非法规则会被自动移除。若一次修改全部为非法规则，则恢复该文件上一次有效内容，
-避免意外丢失现有分流。可写 DNSSEC 信任锚保存在 `/run/guarddns/unbound`，不会
+避免意外丢失现有分流。可写 DNSSEC 信任锚保存在 `/run/veladns/unbound`，不会
 写入 `/data`。
 
 ## RouterOS 与 Mihomo
 
 仓库中的 RouterOS 模板默认使用：
 
-- GuardDNS：`172.16.0.100`
+- VelaDNS：`172.16.0.100`
 - Mihomo：`172.16.0.101`
 - 容器网桥：`172.16.0.0/16`
 
 导入 [routeros/install.rsc](routeros/install.rsc) 前必须检查接口名、路径、
 地址和防火墙插入位置。
 
-Mihomo 应使用 GuardDNS 的 `5304` 端口查询真实地址：
+Mihomo 应使用 VelaDNS 的 `5304` 端口查询真实地址：
 
 ```yaml
 dns:
@@ -223,7 +223,7 @@ dns:
     - 114.114.114.114
 ```
 
-`proxy-server-nameserver` 必须独立于 GuardDNS，确保 Mihomo 能在 bootstrap
+`proxy-server-nameserver` 必须独立于 VelaDNS，确保 Mihomo 能在 bootstrap
 阶段解析代理节点主机名。订阅和控制面域名应同时加入 `direct.txt` 与
 Mihomo 的 `fake-ip-filter`。
 
@@ -234,8 +234,8 @@ Mihomo 的 `fake-ip-filter`。
 ```sh
 go test ./...
 go vet ./...
-docker build -t guarddns:test .
-sh tests/integration.sh guarddns:test
+docker build -t veladns:test .
+sh tests/integration.sh veladns:test
 ```
 
 测试覆盖纯安全模式和 Mihomo 模式、UDP/TCP 监听、CN/非 CN 分类、直接

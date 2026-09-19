@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hyird/GuardDNS/internal/statewire"
+	"github.com/hyird/VelaDNS/internal/statewire"
 )
 
 type runtimeState struct {

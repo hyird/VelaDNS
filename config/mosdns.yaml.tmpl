@@ -8,29 +8,29 @@ api:
 # The selected foreign-path fragment is loaded first. It owns the encrypted
 # upstream, the real-answer cache, and (optionally) the Mihomo validation gate.
 include:
-  - /run/guarddns/foreign.yaml
+  - /run/veladns/foreign.yaml
 
 plugins:
   # The Go entry process reports child state over this Unix datagram socket.
   # No private supervision or metrics TCP port is opened.
-  - tag: guarddns
-    type: guarddns_supervisor
+  - tag: veladns
+    type: veladns_supervisor
     args:
-      socket: /run/guarddns/supervisor.sock
+      socket: /run/veladns/supervisor.sock
 
   # Operators maintain two semantic domain mappings. Explicit direct names
   # always resolve through the encrypted, DNSSEC-validating real-IP path.
   - tag: direct_domains
-    type: guarddns_rule_file
+    type: veladns_rule_file
     args:
       file: /data/direct.txt
 
   - tag: proxy_domains
-    type: guarddns_rule_file
+    type: veladns_rule_file
     args:
       file: /data/proxy.txt
       includes:
-        - /usr/share/guarddns/rules/proxy.txt
+        - /usr/share/veladns/rules/proxy.txt
 
   - tag: private_domains
     type: domain_set
@@ -46,7 +46,7 @@ plugins:
     type: ip_set
     args:
       files:
-        - /usr/share/guarddns/rules/cncidr.txt
+        - /usr/share/veladns/rules/cncidr.txt
 
   - tag: forward_unbound
     type: forward
@@ -98,7 +98,7 @@ plugins:
           - rcode 0
           - has_wanted_ans
           - resp_ip $cn_ips
-        exec: guarddns_decision classified_domestic
+        exec: veladns_decision classified_domestic
       - matches:
           - qtype 1
           - rcode 0
@@ -109,7 +109,7 @@ plugins:
       # answer. Plaintext recursion is poisoned for exactly the names that reach
       # this point, so discard it and let the encrypted, validating instance
       # decide what the client actually receives.
-      - exec: guarddns_decision classified_overseas
+      - exec: veladns_decision classified_overseas
       - exec: drop_resp
       - exec: $forward_unbound
       - exec: goto validated_foreign_path
@@ -117,48 +117,48 @@ plugins:
   - tag: main_sequence
     type: sequence
     args:
-      - exec: guarddns_metrics_collector main
+      - exec: veladns_metrics_collector main
       - matches:
           - qtype 28
-        exec: guarddns_decision rejected_ipv6
+        exec: veladns_decision rejected_ipv6
       - matches:
           - qtype 28
         exec: reject 0
       - matches:
           - qname $private_domains
-        exec: guarddns_decision rejected_private
+        exec: veladns_decision rejected_private
       - matches:
           - qname $private_domains
         exec: reject 3
       - matches:
           - qname $direct_domains
-        exec: guarddns_decision direct
+        exec: veladns_decision direct
       - matches:
           - qname $direct_domains
         exec: goto secure_real_path
       - matches:
           - qname $proxy_domains
-        exec: guarddns_decision proxy
+        exec: veladns_decision proxy
       - matches:
           - qname $proxy_domains
         exec: goto foreign_path
       # The two mappings are fast paths, not the final classifier. Unknown
       # names are resolved once and classified by the real response, matching
       # the core PaoPaoDNS CN/NON-CN behavior.
-      - exec: guarddns_decision unknown
+      - exec: veladns_decision unknown
       - exec: goto classify_path
 
   - tag: secure_listener_path
     type: sequence
     args:
-      - exec: guarddns_metrics_collector secure
+      - exec: veladns_metrics_collector secure
       - matches:
           - qtype 28
-        exec: guarddns_decision secure_listener_rejected_ipv6
+        exec: veladns_decision secure_listener_rejected_ipv6
       - matches:
           - qtype 28
         exec: reject 0
-      - exec: guarddns_decision secure_listener
+      - exec: veladns_decision secure_listener
       - exec: goto secure_real_path
 
   - tag: main_udp
@@ -168,7 +168,7 @@ plugins:
       listen: '0.0.0.0:53'
 
   - tag: main_tcp
-    type: guarddns_tcp_server
+    type: veladns_tcp_server
     args:
       entry: main_sequence
       listen: '0.0.0.0:53'
@@ -183,7 +183,7 @@ plugins:
       listen: '0.0.0.0:5304'
 
   - tag: secure_tcp
-    type: guarddns_tcp_server
+    type: veladns_tcp_server
     args:
       entry: secure_listener_path
       listen: '0.0.0.0:5304'

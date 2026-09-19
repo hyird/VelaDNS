@@ -2,10 +2,10 @@
 
 [English](THIRD_PARTY.md)
 
-GuardDNS 镜像包含以下第三方程序、库和数据：
+VelaDNS 镜像包含以下第三方程序、库和数据：
 
 - [MosDNS](https://github.com/IrineSistiana/mosdns) v5.3.4，GPL-3.0。
-  GuardDNS 构建自定义入口程序，并注册 supervisor、熔断器、决策指标、
+  VelaDNS 构建自定义入口程序，并注册 supervisor、熔断器、决策指标、
   请求指标和 TCP 服务器插件；
 - [Unbound](https://github.com/NLnetLabs/unbound)，BSD-3-Clause；
 - [Loyalsoldier v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat)，

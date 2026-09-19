@@ -1,15 +1,15 @@
 #!/bin/sh
 set -eu
 
-image=${1:-guarddns:test}
+image=${1:-veladns:test}
 alpine_mirror=${TEST_ALPINE_MIRROR:-}
-network="guarddns-test-$$"
-mock_name="guarddns-mock-$$"
-dns_name="guarddns-under-test-$$"
-client_name="guarddns-client-$$"
+network="veladns-test-$$"
+mock_name="veladns-mock-$$"
+dns_name="veladns-under-test-$$"
+client_name="veladns-client-$$"
 # An explicit template keeps TMPDIR authoritative. BSD mktemp otherwise ignores
 # it, and the rule files then land outside the paths a macOS Docker VM shares.
-rule_overrides=$(mktemp -d "${TMPDIR:-/tmp}/guarddns-test.XXXXXXXX")
+rule_overrides=$(mktemp -d "${TMPDIR:-/tmp}/veladns-test.XXXXXXXX")
 
 cleanup() {
   docker rm -f "$client_name" "$dns_name" "$mock_name" >/dev/null 2>&1 || true
@@ -23,7 +23,7 @@ fail() {
   docker inspect -f '{{json .State}}' "$dns_name" >&2 2>/dev/null || true
   docker logs "$dns_name" >&2 || true
   docker exec "$dns_name" ps -ef >&2 2>/dev/null || true
-  docker exec "$dns_name" /usr/local/bin/guarddns-healthcheck >&2 2>/dev/null || true
+  docker exec "$dns_name" /usr/local/bin/veladns-healthcheck >&2 2>/dev/null || true
   if [ -n "${dns_ip:-}" ]; then
     docker exec "$client_name" \
       dig +time=3 +tries=1 "@$dns_ip" dns.google A >&2 2>/dev/null || true
@@ -41,8 +41,8 @@ printf 'full:fakeip-first.test\nfull:www.wikipedia.org\n' \
   >"$rule_overrides/data/proxy.txt"
 
 docker image inspect -f '{{json .Config.Healthcheck.Test}}' "$image" \
-  | grep -q 'guarddns-healthcheck' \
-  || fail "image does not define the GuardDNS health check"
+  | grep -q 'veladns-healthcheck' \
+  || fail "image does not define the VelaDNS health check"
 
 # Model a Mihomo DNS service on a custom port.
 docker run -d \
@@ -63,7 +63,7 @@ mock_ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{
 docker run -d \
   --name "$dns_name" \
   --network "$network" \
-  -v "$rule_overrides/proxy.txt:/usr/share/guarddns/rules/proxy.txt:ro" \
+  -v "$rule_overrides/proxy.txt:/usr/share/veladns/rules/proxy.txt:ro" \
   -v "$rule_overrides/data:/data" \
   -e "AUTO_FORWARD=$mock_ip:5353" \
   -e LOG_LEVEL=info \
@@ -92,7 +92,7 @@ while [ "$i" -lt 40 ]; do
   i=$((i + 1))
   sleep 1
 done
-[ "$ready" -eq 1 ] || fail "GuardDNS did not become ready"
+[ "$ready" -eq 1 ] || fail "VelaDNS did not become ready"
 
 # proxy.txt is deliberately empty in this container. This verifies the
 # PaoPaoDNS-style final classifier rather than a domain-list fast path.
@@ -181,7 +181,7 @@ secure_aaaa_answer=$(docker exec "$client_name" \
 tcp_answer=$(docker exec "$client_name" dig +tcp +time=3 +tries=1 +short "@$dns_ip" doh.pub A)
 [ -n "$tcp_answer" ] || fail "TCP listener returned no A record"
 
-docker exec "$dns_name" /usr/local/bin/guarddns-healthcheck \
+docker exec "$dns_name" /usr/local/bin/veladns-healthcheck \
   || fail "container health check failed"
 
 metrics=$(docker exec "$dns_name" \
@@ -190,22 +190,22 @@ printf '%s\n' "$metrics" | grep -q 'mosdns_metrics_collector_query_total{name="m
   || fail "main listener metrics were not exported"
 printf '%s\n' "$metrics" | grep -q 'mosdns_metrics_collector_query_total{name="secure"}' \
   || fail "secure listener metrics were not exported"
-printf '%s\n' "$metrics" | grep -q 'mosdns_guarddns_component_up{component="unbound"} 1' \
+printf '%s\n' "$metrics" | grep -q 'mosdns_veladns_component_up{component="unbound"} 1' \
   || fail "Unbound supervisor state was not exported"
-printf '%s\n' "$metrics" | grep -q 'mosdns_guarddns_component_up{component="doh_bridge"} 1' \
+printf '%s\n' "$metrics" | grep -q 'mosdns_veladns_component_up{component="doh_bridge"} 1' \
   || fail "encrypted bridge state was not exported"
-printf '%s\n' "$metrics" | grep -q 'mosdns_guarddns_circuit_state{name="auto_forward_circuit"}' \
+printf '%s\n' "$metrics" | grep -q 'mosdns_veladns_circuit_state{name="auto_forward_circuit"}' \
   || fail "AUTO_FORWARD circuit state was not exported"
 for decision in direct proxy classified_domestic classified_overseas; do
   printf '%s\n' "$metrics" \
-    | grep -q "mosdns_guarddns_decisions_total{decision=\"$decision\"}" \
+    | grep -q "mosdns_veladns_decisions_total{decision=\"$decision\"}" \
     || fail "domain mapping decision $decision was not exported"
 done
 
 docker exec "$dns_name" sh -c \
-  "grep -q 'forward-addr: 127.0.0.1@5307' /run/guarddns/unbound.conf &&
-   grep -q 'do-not-query-localhost: no' /run/guarddns/unbound.conf &&
-   ! grep -R -E 'addr: https://|dial_addr:|forward-addr: (223\\.5\\.5\\.5|119\\.29\\.29\\.29)' /run/guarddns /etc/guarddns"
+  "grep -q 'forward-addr: 127.0.0.1@5307' /run/veladns/unbound.conf &&
+   grep -q 'do-not-query-localhost: no' /run/veladns/unbound.conf &&
+   ! grep -R -E 'addr: https://|dial_addr:|forward-addr: (223\\.5\\.5\\.5|119\\.29\\.29\\.29)' /run/veladns /etc/veladns"
 
 # Stop the configured Mihomo DNS. Queries must seamlessly reuse their validated
 # real responses; two consecutive failures open the exponential-backoff
@@ -215,7 +215,7 @@ cached_failover_answer=$(docker exec "$client_name" \
   dig +time=3 +tries=1 +short "@$dns_ip" www.google.com A)
 [ -n "$cached_failover_answer" ] || fail "cached validation result was not reused"
 printf '%s\n' "$cached_failover_answer" | grep -q '198\.18\.0\.42' \
-  && fail "GuardDNS cached a fake-IP response after AUTO_FORWARD stopped"
+  && fail "VelaDNS cached a fake-IP response after AUTO_FORWARD stopped"
 # The proxy path has no pre-resolved answer to reuse, so it must fall
 # back to encrypted real DNS on its own once Mihomo is gone.
 fakeip_first_failover=$(docker exec "$client_name" \
@@ -299,7 +299,7 @@ done
 healthy=0
 i=0
 while [ "$i" -lt 15 ]; do
-  if docker exec "$dns_name" /usr/local/bin/guarddns-healthcheck; then
+  if docker exec "$dns_name" /usr/local/bin/veladns-healthcheck; then
     healthy=1
     break
   fi
@@ -310,10 +310,10 @@ done
 
 metrics=$(docker exec "$dns_name" wget -q -T 3 -O - http://127.0.0.1:5308/metrics)
 printf '%s\n' "$metrics" \
-  | grep -Eq 'mosdns_guarddns_component_restarts_total\{component="unbound"\} [1-9][0-9]*' \
+  | grep -Eq 'mosdns_veladns_component_restarts_total\{component="unbound"\} [1-9][0-9]*' \
   || fail "Unbound restart count was not exported"
 printf '%s\n' "$metrics" \
-  | grep -Eq 'mosdns_guarddns_component_restarts_total\{component="mosdns"\} [1-9][0-9]*' \
+  | grep -Eq 'mosdns_veladns_component_restarts_total\{component="mosdns"\} [1-9][0-9]*' \
   || fail "MosDNS restart count was not exported"
 
 post_restart_answer=$(docker exec "$client_name" \

@@ -35,7 +35,7 @@ plugins:
           idle_timeout: 300
 
   - tag: auto_forward_circuit
-    type: guarddns_circuit
+    type: veladns_circuit
     args:
       primary: forward_auto_raw
       # Losing the fake IP silently downgrades routing to a real address, so
@@ -59,7 +59,7 @@ plugins:
   - tag: fakeip_query
     type: sequence
     args:
-      - exec: guarddns_decision fakeip_attempt
+      - exec: veladns_decision fakeip_attempt
       - exec: drop_resp
       - exec: $auto_forward_circuit
       - matches:
@@ -72,7 +72,7 @@ plugins:
           - qtype 1
           - rcode 0
           - has_wanted_ans
-        exec: guarddns_decision fakeip_answer
+        exec: veladns_decision fakeip_answer
 
   # The fallback plugin copies the current query context, including the
   # validated real response. The standby branch therefore returns that same
@@ -87,7 +87,7 @@ plugins:
   - tag: keep_real_response
     type: sequence
     args:
-      - exec: guarddns_decision fallback_reuse_real
+      - exec: veladns_decision fallback_reuse_real
       - exec: ttl 5
       - exec: accept
 
@@ -112,7 +112,7 @@ plugins:
           - qtype 1
           - rcode 0
           - has_wanted_ans
-        exec: guarddns_decision validated_foreign
+        exec: veladns_decision validated_foreign
       - matches:
           - qtype 1
           - rcode 0
@@ -128,7 +128,7 @@ plugins:
   - tag: encrypted_real_standby
     type: sequence
     args:
-      - exec: guarddns_decision fallback_secure_lookup
+      - exec: veladns_decision fallback_secure_lookup
       - exec: drop_resp
       - exec: $secure_real_path
 

@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	PluginType       = "guarddns_rule_file"
+	PluginType       = "veladns_rule_file"
 	reloadDebounce    = 200 * time.Millisecond
 	maxRuleFileBytes  = 1 << 20
 	maxRegexpRuleSize = 4096

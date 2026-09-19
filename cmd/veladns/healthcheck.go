@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	healthStatusURL = "http://127.0.0.1:5308/plugins/guarddns/readyz"
+	healthStatusURL = "http://127.0.0.1:5308/plugins/veladns/readyz"
 	healthDNSAddr   = "127.0.0.1:5304"
 	healthDNSName   = "example.com."
 )

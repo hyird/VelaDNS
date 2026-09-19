@@ -1,4 +1,4 @@
 #!/bin/sh
 set -eu
 
-exec /usr/local/bin/guarddns healthcheck
+exec /usr/local/bin/veladns healthcheck

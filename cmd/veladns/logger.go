@@ -25,16 +25,16 @@ func newLogger(level string) *logger {
 
 func (l *logger) infof(format string, args ...any) {
 	if l.threshold <= 1 {
-		log.Printf("[GuardDNS] INFO "+format, args...)
+		log.Printf("[VelaDNS] INFO "+format, args...)
 	}
 }
 
 func (l *logger) warnf(format string, args ...any) {
 	if l.threshold <= 2 {
-		log.Printf("[GuardDNS] WARN "+format, args...)
+		log.Printf("[VelaDNS] WARN "+format, args...)
 	}
 }
 
 func (l *logger) errorf(format string, args ...any) {
-	log.Printf("[GuardDNS] ERROR "+format, args...)
+	log.Printf("[VelaDNS] ERROR "+format, args...)
 }

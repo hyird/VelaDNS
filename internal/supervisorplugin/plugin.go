@@ -12,11 +12,11 @@ import (
 
 	"github.com/IrineSistiana/mosdns/v5/coremain"
 	"github.com/go-chi/chi/v5"
-	"github.com/hyird/GuardDNS/internal/statewire"
+	"github.com/hyird/VelaDNS/internal/statewire"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const pluginType = "guarddns_supervisor"
+const pluginType = "veladns_supervisor"
 
 type Args struct {
 	Socket string `yaml:"socket"`
@@ -176,27 +176,27 @@ func (p *Plugin) dependencies(w http.ResponseWriter, _ *http.Request) {
 
 func (p *Plugin) Describe(ch chan<- *prometheus.Desc) {
 	ch <- prometheus.NewDesc(
-		"guarddns_component_up",
-		"Whether a supervised GuardDNS component is running.",
+		"veladns_component_up",
+		"Whether a supervised VelaDNS component is running.",
 		[]string{"component"}, nil,
 	)
 	ch <- prometheus.NewDesc(
-		"guarddns_component_enabled",
-		"Whether a supervised GuardDNS component is enabled.",
+		"veladns_component_enabled",
+		"Whether a supervised VelaDNS component is enabled.",
 		[]string{"component"}, nil,
 	)
 	ch <- prometheus.NewDesc(
-		"guarddns_component_restarts_total",
-		"Total restarts of a supervised GuardDNS component.",
+		"veladns_component_restarts_total",
+		"Total restarts of a supervised VelaDNS component.",
 		[]string{"component"}, nil,
 	)
 	ch <- prometheus.NewDesc(
-		"guarddns_component_backoff_seconds",
-		"Current restart delay for a supervised GuardDNS component.",
+		"veladns_component_backoff_seconds",
+		"Current restart delay for a supervised VelaDNS component.",
 		[]string{"component"}, nil,
 	)
 	ch <- prometheus.NewDesc(
-		"guarddns_supervisor_state_age_seconds",
+		"veladns_supervisor_state_age_seconds",
 		"Age of the last supervisor state update.",
 		nil, nil,
 	)
@@ -213,19 +213,19 @@ func (p *Plugin) Collect(ch chan<- prometheus.Metric) {
 
 	for name, component := range snapshot.Components {
 		ch <- prometheus.MustNewConstMetric(
-			prometheus.NewDesc("guarddns_component_up", "Whether a supervised GuardDNS component is running.", []string{"component"}, nil),
+			prometheus.NewDesc("veladns_component_up", "Whether a supervised VelaDNS component is running.", []string{"component"}, nil),
 			prometheus.GaugeValue, boolFloat(component.Up), name,
 		)
 		ch <- prometheus.MustNewConstMetric(
-			prometheus.NewDesc("guarddns_component_enabled", "Whether a supervised GuardDNS component is enabled.", []string{"component"}, nil),
+			prometheus.NewDesc("veladns_component_enabled", "Whether a supervised VelaDNS component is enabled.", []string{"component"}, nil),
 			prometheus.GaugeValue, boolFloat(component.Enabled), name,
 		)
 		ch <- prometheus.MustNewConstMetric(
-			prometheus.NewDesc("guarddns_component_restarts_total", "Total restarts of a supervised GuardDNS component.", []string{"component"}, nil),
+			prometheus.NewDesc("veladns_component_restarts_total", "Total restarts of a supervised VelaDNS component.", []string{"component"}, nil),
 			prometheus.CounterValue, float64(component.Restarts), name,
 		)
 		ch <- prometheus.MustNewConstMetric(
-			prometheus.NewDesc("guarddns_component_backoff_seconds", "Current restart delay for a supervised GuardDNS component.", []string{"component"}, nil),
+			prometheus.NewDesc("veladns_component_backoff_seconds", "Current restart delay for a supervised VelaDNS component.", []string{"component"}, nil),
 			prometheus.GaugeValue, component.BackoffSeconds, name,
 		)
 	}
@@ -234,7 +234,7 @@ func (p *Plugin) Collect(ch chan<- prometheus.Metric) {
 		age = time.Since(receivedAt).Seconds()
 	}
 	ch <- prometheus.MustNewConstMetric(
-		prometheus.NewDesc("guarddns_supervisor_state_age_seconds", "Age of the last supervisor state update.", nil, nil),
+		prometheus.NewDesc("veladns_supervisor_state_age_seconds", "Age of the last supervisor state update.", nil, nil),
 		prometheus.GaugeValue, age,
 	)
 	now := time.Now()
@@ -267,14 +267,14 @@ func (p *Plugin) Collect(ch chan<- prometheus.Metric) {
 func dohMetricDescriptions() []*prometheus.Desc {
 	labels := []string{"upstream"}
 	return []*prometheus.Desc{
-		prometheus.NewDesc("guarddns_doh_upstream_requests_total", "Total requests considered by a DoH upstream.", labels, nil),
-		prometheus.NewDesc("guarddns_doh_upstream_successes_total", "Total successful DoH upstream requests.", labels, nil),
-		prometheus.NewDesc("guarddns_doh_upstream_failures_total", "Total failed DoH upstream requests.", labels, nil),
-		prometheus.NewDesc("guarddns_doh_upstream_backoff_skips_total", "Total DoH upstream requests skipped during backoff.", labels, nil),
-		prometheus.NewDesc("guarddns_doh_upstream_request_duration_seconds_total", "Cumulative time spent on DoH upstream requests.", labels, nil),
-		prometheus.NewDesc("guarddns_doh_upstream_backoff_seconds", "Seconds until a DoH upstream can be retried.", labels, nil),
-		prometheus.NewDesc("guarddns_doh_upstream_last_success_timestamp_seconds", "Unix timestamp of the last successful DoH upstream request.", labels, nil),
-		prometheus.NewDesc("guarddns_doh_upstream_last_failure_timestamp_seconds", "Unix timestamp of the last failed DoH upstream request.", labels, nil),
+		prometheus.NewDesc("veladns_doh_upstream_requests_total", "Total requests considered by a DoH upstream.", labels, nil),
+		prometheus.NewDesc("veladns_doh_upstream_successes_total", "Total successful DoH upstream requests.", labels, nil),
+		prometheus.NewDesc("veladns_doh_upstream_failures_total", "Total failed DoH upstream requests.", labels, nil),
+		prometheus.NewDesc("veladns_doh_upstream_backoff_skips_total", "Total DoH upstream requests skipped during backoff.", labels, nil),
+		prometheus.NewDesc("veladns_doh_upstream_request_duration_seconds_total", "Cumulative time spent on DoH upstream requests.", labels, nil),
+		prometheus.NewDesc("veladns_doh_upstream_backoff_seconds", "Seconds until a DoH upstream can be retried.", labels, nil),
+		prometheus.NewDesc("veladns_doh_upstream_last_success_timestamp_seconds", "Unix timestamp of the last successful DoH upstream request.", labels, nil),
+		prometheus.NewDesc("veladns_doh_upstream_last_failure_timestamp_seconds", "Unix timestamp of the last failed DoH upstream request.", labels, nil),
 	}
 }
 

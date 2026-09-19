@@ -110,7 +110,7 @@ func TestSecurePathsUseValidatingUnboundOverTLS(t *testing.T) {
 	config := string(source)
 	for _, required := range []string{
 		`module-config: "validator iterator"`,
-		`auto-trust-anchor-file: "/run/guarddns/unbound/root.key"`,
+		`auto-trust-anchor-file: "/run/veladns/unbound/root.key"`,
 		"do-not-query-localhost: no",
 		"forward-addr: 127.0.0.1@5307",
 	} {
@@ -127,12 +127,12 @@ func TestObservabilityPluginsAreWiredIntoEveryRuntimeMode(t *testing.T) {
 	}
 	mainConfig := string(mainSource)
 	for _, required := range []string{
-		"exec: guarddns_metrics_collector main",
-		"exec: guarddns_metrics_collector secure",
-		"type: guarddns_tcp_server",
-		"exec: guarddns_decision classified_domestic",
-		"exec: guarddns_decision classified_overseas",
-		"exec: guarddns_decision unknown",
+		"exec: veladns_metrics_collector main",
+		"exec: veladns_metrics_collector secure",
+		"type: veladns_tcp_server",
+		"exec: veladns_decision classified_domestic",
+		"exec: veladns_decision classified_overseas",
+		"exec: veladns_decision unknown",
 	} {
 		if !strings.Contains(mainConfig, required) {
 			t.Errorf("mosdns.yaml.tmpl is missing %q", required)
@@ -144,14 +144,14 @@ func TestObservabilityPluginsAreWiredIntoEveryRuntimeMode(t *testing.T) {
 
 	for name, decisions := range map[string][]string{
 		"foreign-secure.yaml": {
-			"guarddns_decision secure_non_cn",
-			"guarddns_decision secure_foreign",
+			"veladns_decision secure_non_cn",
+			"veladns_decision secure_foreign",
 		},
 		"foreign-mihomo.yaml.tmpl": {
-			"guarddns_decision fakeip_attempt",
-			"guarddns_decision fakeip_answer",
-			"guarddns_decision fallback_reuse_real",
-			"guarddns_decision fallback_secure_lookup",
+			"veladns_decision fakeip_attempt",
+			"veladns_decision fakeip_answer",
+			"veladns_decision fallback_reuse_real",
+			"veladns_decision fallback_secure_lookup",
 		},
 	} {
 		source, err := os.ReadFile(filepath.Join("..", "..", "config", name))
@@ -175,13 +175,13 @@ func TestTwoLogicalDomainMappings(t *testing.T) {
 	config := string(source)
 	for _, required := range []string{
 		"tag: direct_domains",
-		"type: guarddns_rule_file",
+		"type: veladns_rule_file",
 		"/data/direct.txt",
 		"tag: proxy_domains",
 		"/data/proxy.txt",
-		"/usr/share/guarddns/rules/proxy.txt",
-		"exec: guarddns_decision direct",
-		"exec: guarddns_decision proxy",
+		"/usr/share/veladns/rules/proxy.txt",
+		"exec: veladns_decision direct",
+		"exec: veladns_decision proxy",
 	} {
 		if !strings.Contains(config, required) {
 			t.Errorf("mosdns.yaml.tmpl is missing logical mapping %q", required)
@@ -206,7 +206,7 @@ func TestTwoLogicalDomainMappings(t *testing.T) {
 	main := config[strings.Index(config, "tag: main_sequence"):]
 	direct := strings.Index(main, "qname $direct_domains")
 	proxy := strings.Index(main, "qname $proxy_domains")
-	unknown := strings.Index(main, "guarddns_decision unknown")
+	unknown := strings.Index(main, "veladns_decision unknown")
 	if direct < 0 || proxy < 0 || unknown < 0 {
 		t.Fatal("main sequence is missing a logical mapping")
 	}
@@ -332,8 +332,8 @@ func TestForeignDoHEndpointsUseBundledProxyPath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	directMatch := strings.Index(string(template), "- qname $direct_domains\n        exec: guarddns_decision direct")
-	proxyMatch := strings.Index(string(template), "- qname $proxy_domains\n        exec: guarddns_decision proxy")
+	directMatch := strings.Index(string(template), "- qname $direct_domains\n        exec: veladns_decision direct")
+	proxyMatch := strings.Index(string(template), "- qname $proxy_domains\n        exec: veladns_decision proxy")
 	if directMatch == -1 || proxyMatch == -1 || directMatch > proxyMatch {
 		t.Error("direct rule matching must precede proxy matching")
 	}

@@ -19,20 +19,20 @@ func main() {
 			return
 		case "healthcheck":
 			if err := runHealthcheck(); err != nil {
-				fmt.Fprintf(os.Stderr, "GuardDNS health check failed: %v\n", err)
+				fmt.Fprintf(os.Stderr, "VelaDNS health check failed: %v\n", err)
 				os.Exit(1)
 			}
 			return
 		}
 	}
 	if len(os.Args) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: guarddns [version|healthcheck]")
+		fmt.Fprintln(os.Stderr, "usage: veladns [version|healthcheck]")
 		os.Exit(2)
 	}
 
 	cfg, err := loadConfig()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "GuardDNS configuration error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "VelaDNS configuration error: %v\n", err)
 		os.Exit(2)
 	}
 	log := newLogger(cfg.logLevel)

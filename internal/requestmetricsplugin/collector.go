@@ -7,11 +7,11 @@ import (
 
 	"github.com/IrineSistiana/mosdns/v5/pkg/query_context"
 	"github.com/IrineSistiana/mosdns/v5/plugin/executable/sequence"
-	"github.com/hyird/GuardDNS/internal/cancelclassify"
+	"github.com/hyird/VelaDNS/internal/cancelclassify"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const pluginType = "guarddns_metrics_collector"
+const pluginType = "veladns_metrics_collector"
 
 type collector struct {
 	queryTotal      prometheus.Counter

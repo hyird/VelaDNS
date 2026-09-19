@@ -11,12 +11,12 @@ import (
 	"github.com/IrineSistiana/mosdns/v5/coremain"
 	_ "github.com/IrineSistiana/mosdns/v5/plugin"
 	_ "github.com/IrineSistiana/mosdns/v5/tools"
-	_ "github.com/hyird/GuardDNS/internal/circuitplugin"
-	_ "github.com/hyird/GuardDNS/internal/decisionplugin"
-	_ "github.com/hyird/GuardDNS/internal/requestmetricsplugin"
-	_ "github.com/hyird/GuardDNS/internal/rulesplugin"
-	_ "github.com/hyird/GuardDNS/internal/supervisorplugin"
-	_ "github.com/hyird/GuardDNS/internal/tcpserverplugin"
+	_ "github.com/hyird/VelaDNS/internal/circuitplugin"
+	_ "github.com/hyird/VelaDNS/internal/decisionplugin"
+	_ "github.com/hyird/VelaDNS/internal/requestmetricsplugin"
+	_ "github.com/hyird/VelaDNS/internal/rulesplugin"
+	_ "github.com/hyird/VelaDNS/internal/supervisorplugin"
+	_ "github.com/hyird/VelaDNS/internal/tcpserverplugin"
 )
 
 func TestRuntimeConfigsInitialize(t *testing.T) {
@@ -44,12 +44,12 @@ func TestRuntimeConfigsInitialize(t *testing.T) {
 			mainConfig := readFile(t, filepath.Join("..", "..", "config", "mosdns.yaml.tmpl"))
 			mainConfig = strings.NewReplacer(
 				"__LOG_LEVEL__", "error",
-				"/run/guarddns/foreign.yaml", foreignPath,
-				"/run/guarddns/supervisor.sock", filepath.Join(dir, "supervisor.sock"),
+				"/run/veladns/foreign.yaml", foreignPath,
+				"/run/veladns/supervisor.sock", filepath.Join(dir, "supervisor.sock"),
 				"/data/direct.txt", rules,
 				"/data/proxy.txt", rules,
-				"/usr/share/guarddns/rules/proxy.txt", rules,
-				"/usr/share/guarddns/rules/cncidr.txt", cidr,
+				"/usr/share/veladns/rules/proxy.txt", rules,
+				"/usr/share/veladns/rules/cncidr.txt", cidr,
 				"http: '0.0.0.0:5308'", "http: ''",
 				"listen: '0.0.0.0:53'", "listen: '127.0.0.1:0'",
 				"listen: '0.0.0.0:5304'", "listen: '127.0.0.1:0'",

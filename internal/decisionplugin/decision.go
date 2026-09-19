@@ -10,7 +10,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const pluginType = "guarddns_decision"
+const pluginType = "veladns_decision"
 
 type executable struct {
 	counter prometheus.Counter
@@ -37,8 +37,8 @@ func decisionCounter(
 	decision string,
 ) (prometheus.Counter, error) {
 	vector := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "guarddns_decisions_total",
-		Help: "Total DNS routing decisions made by GuardDNS.",
+		Name: "veladns_decisions_total",
+		Help: "Total DNS routing decisions made by VelaDNS.",
 	}, []string{"decision"})
 	if err := registerer.Register(vector); err != nil {
 		var alreadyRegistered prometheus.AlreadyRegisteredError
@@ -48,7 +48,7 @@ func decisionCounter(
 		var ok bool
 		vector, ok = alreadyRegistered.ExistingCollector.(*prometheus.CounterVec)
 		if !ok {
-			return nil, errors.New("guarddns decision metric has an incompatible collector")
+			return nil, errors.New("veladns decision metric has an incompatible collector")
 		}
 	}
 	return vector.WithLabelValues(decision), nil

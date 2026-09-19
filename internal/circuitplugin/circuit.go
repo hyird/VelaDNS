@@ -16,7 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const pluginType = "guarddns_circuit"
+const pluginType = "veladns_circuit"
 
 var (
 	errCircuitOpen    = errors.New("AUTO_FORWARD circuit is open")
@@ -196,22 +196,22 @@ func initPlugin(bp *coremain.BP, raw any) (any, error) {
 
 	labels := prometheus.Labels{"name": bp.Tag()}
 	stateGauge := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name:        "guarddns_circuit_state",
+		Name:        "veladns_circuit_state",
 		Help:        "AUTO_FORWARD circuit state: 0 closed, 1 open, 2 half-open.",
 		ConstLabels: labels,
 	})
 	backoffGauge := prometheus.NewGauge(prometheus.GaugeOpts{
-		Name:        "guarddns_circuit_backoff_seconds",
+		Name:        "veladns_circuit_backoff_seconds",
 		Help:        "Current AUTO_FORWARD retry delay in seconds.",
 		ConstLabels: labels,
 	})
 	failureCounter := prometheus.NewCounter(prometheus.CounterOpts{
-		Name:        "guarddns_circuit_failures_total",
+		Name:        "veladns_circuit_failures_total",
 		Help:        "Total failures observed by the AUTO_FORWARD circuit.",
 		ConstLabels: labels,
 	})
 	bypassCounter := prometheus.NewCounter(prometheus.CounterOpts{
-		Name:        "guarddns_circuit_bypass_total",
+		Name:        "veladns_circuit_bypass_total",
 		Help:        "Queries that bypassed AUTO_FORWARD while its circuit was open.",
 		ConstLabels: labels,
 	})
@@ -299,7 +299,7 @@ func (p *Plugin) attemptOnce(
 	qCtx *query_context.Context,
 ) (*dns.Msg, error) {
 	// MosDNS's forward plugin uses a fixed five-second upstream deadline. Run
-	// it against a private query context so GuardDNS can declare the attempt
+	// it against a private query context so VelaDNS can declare the attempt
 	// failed sooner without a late response mutating the caller's context.
 	attemptCtx := qCtx.Copy()
 	result := make(chan error, 1)

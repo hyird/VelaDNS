@@ -1,7 +1,7 @@
 services:
-  guarddns:
-    image: ghcr.io/hyird/guarddns:latest
-    container_name: guarddns
+  veladns:
+    image: ghcr.io/hyird/veladns:latest
+    container_name: veladns
     restart: unless-stopped
     environment:
       AUTO_FORWARD: 172.16.0.101

@@ -9,11 +9,11 @@ import (
 )
 
 func TestLiveDoHUpstreams(t *testing.T) {
-	if os.Getenv("GUARDNS_LIVE_DOH_TEST") != "1" {
-		t.Skip("set GUARDNS_LIVE_DOH_TEST=1 to query public DoH upstreams")
+	if os.Getenv("VELADNS_LIVE_DOH_TEST") != "1" {
+		t.Skip("set VELADNS_LIVE_DOH_TEST=1 to query public DoH upstreams")
 	}
 	cfg := config{}
-	if autoDNS := os.Getenv("GUARDNS_LIVE_AUTO_DNS"); autoDNS != "" {
+	if autoDNS := os.Getenv("VELADNS_LIVE_AUTO_DNS"); autoDNS != "" {
 		cfg.autoEnabled = true
 		cfg.autoDNS = autoDNS
 	}

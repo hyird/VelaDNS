@@ -1,8 +1,8 @@
-# GuardDNS
+# VelaDNS
 
 English | [简体中文](README.zh-CN.md)
 
-GuardDNS is a fail-closed split DNS container for RouterOS, Mihomo, and
+VelaDNS is a fail-closed split DNS container for RouterOS, Mihomo, and
 ordinary Docker hosts. It combines:
 
 - MosDNS 5.3.4 for request routing, caches, metrics, and DNS listeners.
@@ -44,7 +44,7 @@ Requests are evaluated in this order:
 | AAAA | Empty successful response |
 | Private name | `NXDOMAIN` |
 
-Fake-IP is never cached by GuardDNS. DNSSEC failures remain `SERVFAIL`;
+Fake-IP is never cached by VelaDNS. DNSSEC failures remain `SERVFAIL`;
 `NXDOMAIN` and NODATA are not converted to fake-IP.
 
 ## Quick start
@@ -53,27 +53,27 @@ Secure real-IP mode:
 
 ```sh
 docker run -d \
-  --name guarddns \
+  --name veladns \
   --restart unless-stopped \
   -v ./data:/data \
   -p 53:53/udp -p 53:53/tcp \
   -p 5304:5304/udp -p 5304:5304/tcp \
   -p 127.0.0.1:5308:5308/tcp \
-  ghcr.io/hyird/guarddns:latest
+  ghcr.io/hyird/veladns:latest
 ```
 
 Mihomo fake-IP mode:
 
 ```sh
 docker run -d \
-  --name guarddns \
+  --name veladns \
   --restart unless-stopped \
   -v ./data:/data \
   -e AUTO_FORWARD=172.16.0.101 \
   -p 53:53/udp -p 53:53/tcp \
   -p 5304:5304/udp -p 5304:5304/tcp \
   -p 127.0.0.1:5308:5308/tcp \
-  ghcr.io/hyird/guarddns:latest
+  ghcr.io/hyird/veladns:latest
 ```
 
 Port `53` is the client-facing split DNS listener. Port `5304` always returns
@@ -91,7 +91,7 @@ reviewable [RouterOS template](routeros/install.rsc).
 | `AUTO_FORWARD` | `no` | `no` or Mihomo DNS `host[:port]`; the port defaults to `53` |
 
 `AUTO_FORWARD` accepts a hostname or IPv4 endpoint; IPv6 literals are not
-supported. GuardDNS uses TCP for this DNS hop.
+supported. VelaDNS uses TCP for this DNS hop.
 
 When Mihomo is enabled:
 
@@ -144,10 +144,10 @@ A failed child restarts with a jittered delay capped at 30 seconds.
 
 | Endpoint | Meaning |
 | --- | --- |
-| `/plugins/guarddns/livez` | Supervisor state is fresh and MosDNS is running |
-| `/plugins/guarddns/readyz` | Adds the DoH bridge and resolver dependency state |
-| `/plugins/guarddns/healthz` | Compatibility alias for `readyz` |
-| `/plugins/guarddns/dependencies` | JSON snapshot of components and DoH providers |
+| `/plugins/veladns/livez` | Supervisor state is fresh and MosDNS is running |
+| `/plugins/veladns/readyz` | Adds the DoH bridge and resolver dependency state |
+| `/plugins/veladns/healthz` | Compatibility alias for `readyz` |
+| `/plugins/veladns/dependencies` | JSON snapshot of components and DoH providers |
 
 A failed validating or recursive Unbound reports `degraded`; a stale supervisor,
 stopped MosDNS, or unavailable DoH bridge reports unhealthy. The container
@@ -167,11 +167,11 @@ Key metric families:
 | Family | Purpose |
 | --- | --- |
 | `mosdns_metrics_collector_*` | Main/secure query totals, real errors, client cancellations, concurrency, and latency |
-| `mosdns_guarddns_decisions_total` | Ordered routing and classification decisions |
-| `mosdns_guarddns_doh_upstream_*` | Per-provider requests, successes, failures, duration, backoff, and timestamps |
-| `mosdns_guarddns_component_*` | Supervised process state, restarts, and restart backoff |
-| `mosdns_guarddns_circuit_*` | Mihomo circuit state, failures, bypasses, and retry delay |
-| `mosdns_guarddns_client_cancel_events_total` | Expected TCP entry/write cancellations suppressed from warning logs |
+| `mosdns_veladns_decisions_total` | Ordered routing and classification decisions |
+| `mosdns_veladns_doh_upstream_*` | Per-provider requests, successes, failures, duration, backoff, and timestamps |
+| `mosdns_veladns_component_*` | Supervised process state, restarts, and restart backoff |
+| `mosdns_veladns_circuit_*` | Mihomo circuit state, failures, bypasses, and retry delay |
+| `mosdns_veladns_client_cancel_events_total` | Expected TCP entry/write cancellations suppressed from warning logs |
 
 MosDNS also exports Go/process, cache, and tagged forward-upstream metrics.
 Profiling handlers are available under `/debug/pprof` on the same listener.
@@ -179,7 +179,7 @@ Never expose port `5308` to an untrusted network.
 
 ## Custom rules
 
-GuardDNS exposes two domain mappings:
+VelaDNS exposes two domain mappings:
 
 | Mapping | User-maintained file | Built-in base | Result |
 | --- | --- | --- | --- |
@@ -209,21 +209,21 @@ hot-reloaded after a roughly 200 ms debounce without restarting the container
 or DNS listeners. An empty file clears its rules; comments, blank lines, and
 invalid rules are removed. If an edit contains only invalid rules, the file is
 restored to its previous valid content so active policy is not lost. The
-writable DNSSEC trust anchor is stored under `/run/guarddns/unbound`, not in
+writable DNSSEC trust anchor is stored under `/run/veladns/unbound`, not in
 `/data`.
 
 ## RouterOS and Mihomo
 
 The supplied RouterOS template assumes:
 
-- GuardDNS: `172.16.0.100`
+- VelaDNS: `172.16.0.100`
 - Mihomo: `172.16.0.101`
 - container bridge: `172.16.0.0/16`
 
 Review interface names, paths, addresses, and firewall placement before
 importing [routeros/install.rsc](routeros/install.rsc).
 
-Mihomo should use GuardDNS port `5304` for real-address queries:
+Mihomo should use VelaDNS port `5304` for real-address queries:
 
 ```yaml
 dns:
@@ -237,7 +237,7 @@ dns:
     - 114.114.114.114
 ```
 
-Keep `proxy-server-nameserver` independent from GuardDNS so Mihomo can resolve
+Keep `proxy-server-nameserver` independent from VelaDNS so Mihomo can resolve
 proxy node hostnames during bootstrap. Add subscription and control-plane names
 to both `direct.txt` and Mihomo's `fake-ip-filter`.
 
@@ -248,8 +248,8 @@ Run the integration suite with:
 ```sh
 go test ./...
 go vet ./...
-docker build -t guarddns:test .
-sh tests/integration.sh guarddns:test
+docker build -t veladns:test .
+sh tests/integration.sh veladns:test
 ```
 
 The suite covers secure-only and Mihomo modes, UDP/TCP listeners, CN/non-CN

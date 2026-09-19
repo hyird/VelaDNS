@@ -34,7 +34,7 @@ func TestCancellationLoggerSuppressesExpectedDisconnects(t *testing.T) {
 	}
 	var got float64
 	for _, family := range families {
-		if family.GetName() != "mosdns_guarddns_client_cancel_events_total" {
+		if family.GetName() != "mosdns_veladns_client_cancel_events_total" {
 			continue
 		}
 		for _, metric := range family.Metric {

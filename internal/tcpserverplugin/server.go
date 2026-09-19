@@ -15,13 +15,13 @@ import (
 	"github.com/IrineSistiana/mosdns/v5/plugin/executable/sequence"
 	"github.com/IrineSistiana/mosdns/v5/plugin/server/server_utils"
 	"github.com/IrineSistiana/mosdns/v5/plugin/server/tcp_server"
-	"github.com/hyird/GuardDNS/internal/cancelclassify"
+	"github.com/hyird/VelaDNS/internal/cancelclassify"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-const pluginType = "guarddns_tcp_server"
+const pluginType = "veladns_tcp_server"
 
 type Plugin struct {
 	listener net.Listener
@@ -83,7 +83,7 @@ func initPlugin(bp *coremain.BP, raw any) (any, error) {
 		listener = tls.NewListener(listener, tlsConfig)
 	}
 	bp.L().Info(
-		"guarddns TCP server started",
+		"veladns TCP server started",
 		zap.Stringer("addr", listener.Addr()),
 		zap.Bool("tls", tlsConfig != nil),
 	)
@@ -101,7 +101,7 @@ func initPlugin(bp *coremain.BP, raw any) (any, error) {
 
 func cancellationCounter(registerer prometheus.Registerer) (*prometheus.CounterVec, error) {
 	vector := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "guarddns_client_cancel_events_total",
+		Name: "veladns_client_cancel_events_total",
 		Help: "Expected downstream TCP cancellation events suppressed from warning logs.",
 	}, []string{"listener", "stage"})
 	if err := registerer.Register(vector); err != nil {

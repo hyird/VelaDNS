@@ -24,11 +24,11 @@ plugins:
   - tag: validated_foreign_path
     type: sequence
     args:
-      - exec: guarddns_decision secure_non_cn
+      - exec: veladns_decision secure_non_cn
       - exec: accept
 
   - tag: foreign_path
     type: sequence
     args:
-      - exec: guarddns_decision secure_foreign
+      - exec: veladns_decision secure_foreign
       - exec: goto secure_real_path
