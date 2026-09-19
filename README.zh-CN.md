@@ -6,7 +6,7 @@ VelaDNS 是一个面向 RouterOS、Mihomo 和普通 Docker 主机的故障关闭
 DNS 容器，包含：
 
 - MosDNS 5.3.4：请求路由、缓存、指标和 DNS 监听；
-- 两个 Unbound 1.25.1 实例：本地递归 CN 分类器，以及支持 DNSSEC 验证的
+- 两个 Unbound 1.25.2 实例：本地递归 CN 分类器，以及支持 DNSSEC 验证的
   加密解析器；
 - 带提供商故障切换和退避的进程内 DoH 网桥；
 - 可选的 Mihomo DNS fake-IP 集成；

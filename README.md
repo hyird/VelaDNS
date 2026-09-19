@@ -6,7 +6,7 @@ VelaDNS is a fail-closed split DNS container for RouterOS, Mihomo, and
 ordinary Docker hosts. It combines:
 
 - MosDNS 5.3.4 for request routing, caches, metrics, and DNS listeners.
-- Two Unbound 1.25.1 instances: a local recursive CN classifier and a
+- Two Unbound 1.25.2 instances: a local recursive CN classifier and a
   DNSSEC-validating encrypted resolver.
 - An in-process DoH bridge with provider fallback and backoff.
 - Optional Mihomo DNS integration for fake-IP.

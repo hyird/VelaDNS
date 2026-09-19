@@ -88,7 +88,7 @@ COPY --chmod=0755 scripts/healthcheck.sh /usr/local/bin/veladns-healthcheck
 
 FROM alpine:${ALPINE_VERSION} AS runtime-root
 
-ARG UNBOUND_VERSION=1.25.1
+ARG UNBOUND_VERSION=1.25.2
 ARG ALPINE_MIRROR
 
 RUN if [ -n "$ALPINE_MIRROR" ]; then \
@@ -98,7 +98,7 @@ RUN if [ -n "$ALPINE_MIRROR" ]; then \
       ca-certificates \
       tini \
       tzdata \
-      "unbound=1.25.1-r0" \
+      "unbound=1.25.2-r2" \
     && ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && printf '%s\n' 'Asia/Shanghai' > /etc/timezone \
     && mkdir -p /etc/veladns /usr/share/veladns/rules /run/veladns/unbound /data
